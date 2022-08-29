@@ -7,6 +7,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/pciruelos/go-react-crud/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -26,19 +27,31 @@ func main() {
 		panic(err)
 	}
 
-	coll := client.Database("gomongodbreact").Collection("users")
-	coll.InsertOne(context.TODO(), bson.D{{
-		Key:   "name",
-		Value: "Pablo",
-	}})
-
 	app.Use(cors.New())
 
 	app.Static("/", "./client/dist")
 
 	app.Get("/users", func(c *fiber.Ctx) error {
 		return c.JSON(&fiber.Map{
-			"data": "users from backend",
+			"data": "dale users from backend",
+		})
+	})
+
+	app.Post("/users", func(c *fiber.Ctx) error {
+		var user models.User
+		c.BodyParser(&user)
+
+		coll := client.Database("gomongodbreact").Collection("users")
+		result, err := coll.InsertOne(context.TODO(), bson.D{{
+			Key:   "name",
+			Value: user.Name,
+		}})
+		if err != nil {
+			panic(err)
+		}
+
+		return c.JSON(&fiber.Map{
+			"data": "guardando usuario from post",
 		})
 	})
 
